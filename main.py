@@ -43,7 +43,7 @@ def send_wol_packet(mac):
 
 
 for retry in range(3):
-    print(f"Retry {retry} / 3")
+    print(f"Retry {retry + 1} / 3")
     with open("macs.txt", "rt") as fp:
         for line in fp:
             mac = line.strip()
@@ -52,4 +52,5 @@ for retry in range(3):
     print("sleeping for 30s...")
     sleep(30)
 
-machine.deepsleep(10000)
+print("deep sleep for 3h")
+machine.deepsleep(1000 * 60 * 60 * 3) 
