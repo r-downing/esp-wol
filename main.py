@@ -71,7 +71,8 @@ if "deep_sleep" in loaded:
     loaded["deep_sleep"] -= sleep_time
     save_to_rtc_8266(loaded)
 
-    machine.deepsleep(sleep_time)
+    if sleep_time:
+        machine.deepsleep(sleep_time)
 
 
 for retry in range(3):
