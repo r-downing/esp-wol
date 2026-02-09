@@ -41,6 +41,38 @@ def send_wol_packet(mac):
         sock.close()
 
 
+import machine
+import ujson
+
+rtc = machine.RTC()
+
+def save_to_rtc_8266(data):
+    json_str = ujson.dumps(data)
+    json_bytes = json_str.encode('utf-8')
+    
+    pad = (4 - len(json_bytes) % 4) % 4
+    json_bytes += b' ' * pad
+    
+    rtc.memory(json_bytes)
+
+def load_from_rtc_8266():
+    data_bytes = rtc.memory()
+    
+    try:
+        # Strip padding and decode
+        return ujson.loads(data_bytes.decode('utf-8').strip())
+    except Exception:
+        return None
+
+
+loaded = load_from_rtc_8266() or {}
+if "deep_sleep" in loaded:
+    sleep_time = min(loaded["deep_sleep"], 1000 * 60 * 30)
+    loaded["deep_sleep"] -= sleep_time
+    save_to_rtc_8266(loaded)
+
+    machine.deepsleep(sleep_time)
+
 
 for retry in range(3):
     print(f"Retry {retry + 1} / 3")
@@ -52,5 +84,5 @@ for retry in range(3):
     print("sleeping for 30s...")
     sleep(30)
 
-print("deep sleep for 3h")
-machine.deepsleep(1000 * 60 * 60 * 3) 
+save_to_rtc_8266({"deep_sleep": 1000 * 60 * 60 * 3})
+machine.reset()
